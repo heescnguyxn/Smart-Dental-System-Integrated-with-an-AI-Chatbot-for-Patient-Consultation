@@ -13,6 +13,9 @@ import ManageAppointments from '../pages/admin/ManageAppointments';
 import PatientAppointments from '../pages/patient/PatientAppointments';
 import GeneralBooking from '../pages/patient/GeneralBooking';
 import ManageSupplies from '../pages/admin/ManageSupplies';
+import ManagePayments from '../pages/staff/ManagePayments';
+import RevenueReport from '../pages/staff/RevenueReport';
+import PatientInvoices from '../pages/patient/PatientInvoices';
 import Profile from '../pages/shared/Profile';
 import DoctorDetail from '../pages/patient/DoctorDetail';
 import { useContext } from 'react';
@@ -21,7 +24,9 @@ import { AuthContext } from '../context/AuthContext';
 const AppRoutes = () => {
     const { user, loading } = useContext(AuthContext);
 
-    if (loading) return <div>Loading...</div>;
+    if (loading) {
+        return <div className="page-fill d-flex align-items-center justify-content-center py-5">Loading...</div>;
+    }
 
     return (
         <Routes>
@@ -39,7 +44,10 @@ const AppRoutes = () => {
             <Route path="/manage-doctors" element={<ManageDoctors />} />
             <Route path="/manage-appointments" element={<ManageAppointments />} />
             <Route path="/manage-supplies" element={<ManageSupplies />} />
+            <Route path="/manage-payments" element={user?.role === 'staff' ? <ManagePayments /> : <Navigate to="/login" />} />
+            <Route path="/revenue-report" element={user?.role === 'staff' ? <RevenueReport /> : <Navigate to="/login" />} />
             <Route path="/my-appointments" element={user?.role === 'patient' ? <PatientAppointments /> : <Navigate to="/login" />} />
+            <Route path="/my-invoices" element={user?.role === 'patient' ? <PatientInvoices /> : <Navigate to="/login" />} />
             <Route path="/profile" element={user ? <Profile /> : <Navigate to="/login" />} />
 
             <Route path="*" element={<Navigate to="/" />} />

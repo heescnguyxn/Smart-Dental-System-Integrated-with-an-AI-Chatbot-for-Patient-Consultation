@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Badge, Spinner, Alert, Button, Table } from 'react-bootstrap';
 import { appointmentService } from '../../services/appointmentService';
-import { FaCalendarAlt, FaClock, FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaUserMd, FaNotesMedical, FaHistory } from 'react-icons/fa';
-
+import { FaCalendarAlt, FaClock, FaCheckCircle, FaHourglassHalf, FaTimesCircle, FaUserMd, FaNotesMedical, FaHistory, FaFileMedical } from 'react-icons/fa';
+import PatientMedicalRecordModal from './components/PatientMedicalRecordModal';
 const PatientAppointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [updateLoading, setUpdateLoading] = useState(false);
+    
+    const [selectedApt, setSelectedApt] = useState(null);
+    const [showRecordModal, setShowRecordModal] = useState(false);
+
+    const handleShowRecord = (apt) => {
+        setSelectedApt(apt);
+        setShowRecordModal(true);
+    };
 
     const fetchAppointments = async () => {
         try {
@@ -56,7 +64,7 @@ const PatientAppointments = () => {
     const pastApts = appointments.filter(apt => apt.status === 'completed' || apt.status === 'cancelled').length;
 
     return (
-        <div className="bg-light pb-5" style={{ minHeight: '100vh' }}>
+        <div className="page-fill bg-light pb-5">
             <div className="bg-primary text-white py-4 mb-4 shadow-sm" style={{ background: 'linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%)' }}>
                 <Container>
                     <h2 className="mb-0 fw-bold"><FaCalendarAlt className="me-2 mb-1"/> Lịch Khám Của Tôi</h2>
@@ -189,8 +197,18 @@ const PatientAppointments = () => {
                                                                 {updateLoading ? <Spinner size="sm" className="me-1"/> : <FaTimesCircle className="me-1" />} Hủy lịch
                                                             </Button>
                                                         )}
-                                                        {apt.status !== 'pending' && (
-                                                            <span className="text-muted small fst-italic">Không có sẵn</span>
+                                                        {(apt.status === 'confirmed' || apt.status === 'completed') && (
+                                                            <Button 
+                                                                variant="outline-info" 
+                                                                size="sm" 
+                                                                onClick={() => handleShowRecord(apt)} 
+                                                                className="rounded-pill px-3 d-flex align-items-center"
+                                                            >
+                                                                <FaFileMedical className="me-1" /> Xem hồ sơ
+                                                            </Button>
+                                                        )}
+                                                        {apt.status === 'cancelled' && (
+                                                            <span className="text-muted small fst-italic">Đã hủy</span>
                                                         )}
                                                     </div>
                                                 </td>
@@ -203,6 +221,13 @@ const PatientAppointments = () => {
                     </Card.Body>
                 </Card>
             </Container>
+
+            {/* Modal xem hồ sơ bệnh án */}
+            <PatientMedicalRecordModal 
+                show={showRecordModal} 
+                onHide={() => setShowRecordModal(false)} 
+                appointment={selectedApt} 
+            />
         </div>
     );
 };

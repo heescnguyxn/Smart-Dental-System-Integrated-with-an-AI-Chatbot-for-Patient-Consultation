@@ -13,6 +13,8 @@ const reviewRoutes = require('./routes/reviews');
 const chatRoutes = require('./routes/chat');
 const supplyRoutes = require('./routes/supplies');
 const userRoutes = require('./routes/users');
+const medicalRecordRoutes = require('./routes/medicalRecords');
+const prescriptionRoutes = require('./routes/prescriptions');
 // ... other routes
 
 connectDB();
@@ -33,6 +35,8 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/chat', chatRoutes);
 app.use('/api/supplies', supplyRoutes);
 app.use('/api/users', userRoutes);
+app.use('/api/medical-records', medicalRecordRoutes);
+app.use('/api/prescriptions', prescriptionRoutes);
 
 app.get('/', (req, res) => {
     res.json({ message: 'Medical Booking API running!' });

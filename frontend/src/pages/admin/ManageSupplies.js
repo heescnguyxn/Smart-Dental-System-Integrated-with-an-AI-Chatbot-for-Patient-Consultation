@@ -84,7 +84,7 @@ const ManageSupplies = () => {
     };
 
     return (
-        <div className="bg-light pb-5" style={{ minHeight: '100vh' }}>
+        <div className="page-fill bg-light pb-5">
             <div className="bg-primary text-white py-4 mb-4 shadow-sm" style={{ background: 'linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%)' }}>
                 <Container>
                     <h2 className="mb-0 fw-bold"><FaBoxOpen className="me-2 mb-1"/> Quản lý Vật tư</h2>

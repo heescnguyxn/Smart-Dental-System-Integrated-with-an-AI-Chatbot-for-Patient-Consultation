@@ -10,7 +10,7 @@ function App() {
     return (
         <AuthProvider>
             <Router>
-                <div className="App">
+                <div className="app-shell">
                     <Navbar />
                     <main className="main-content">
                         <AppRoutes />

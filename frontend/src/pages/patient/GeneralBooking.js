@@ -73,8 +73,7 @@ const GeneralBooking = () => {
     };
 
     return (
-        <div className="d-flex align-items-center justify-content-center" style={{ 
-            minHeight: '100vh', 
+        <div className="page-fill d-flex align-items-center justify-content-center" style={{
             background: 'linear-gradient(135deg, #00b4db 0%, #0083B0 100%)', // matching the blue-green gradient in the image
             padding: '40px 15px'
         }}>

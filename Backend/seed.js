@@ -3,7 +3,9 @@ const mongoose = require('mongoose');
 const connectDB = require('./Config/database');
 const User = require('./Models/User');
 const Doctor = require('./Models/Doctor');
-const bcrypt = require('bcryptjs');
+const Appointment = require('./Models/Appointment');
+const MedicalRecord = require('./Models/MedicalRecord');
+const bcrypt = require('bcrypt');
 
 connectDB();
 
@@ -12,6 +14,8 @@ const seedData = async () => {
         // Clear old data
         await User.deleteMany({});
         await Doctor.deleteMany({});
+        await Appointment.deleteMany({});
+        await MedicalRecord.deleteMany({});
 
         const hashedPassword = await bcrypt.hash('123456', 10);
 
@@ -73,6 +77,28 @@ const seedData = async () => {
         await Doctor.create({
             userId: doctorUsers[9]._id, specialty: 'Tiểu phẫu cắt chóp', hospital: 'Bệnh viện Răng Hàm Mặt TW', experience: 16, fee: 800000,
             schedule: [{ day: 'T2', from: '8:00', to: '12:00' }, { day: 'T4', from: '8:00', to: '12:00' }], rating: 4.9, reviewsCount: 180
+        });
+
+        // Sample Appointment & Medical Record
+        const aptDate = new Date();
+        const sampleApt = await Appointment.create({
+            patientId: doctorUsers[10]._id,
+            doctorId: doctorUsers[0]._id,
+            date: aptDate,
+            time: '9:00',
+            reason: 'Đau răng hàm dưới',
+            status: 'completed',
+            notes: 'Bệnh nhân đến khám theo lịch hẹn'
+        });
+
+        await MedicalRecord.create({
+            patientId: doctorUsers[10]._id,
+            doctorId: doctorUsers[0]._id,
+            appointmentId: sampleApt._id,
+            date: aptDate,
+            diagnosis: 'Sâu răng hàm dưới (Răng số 7), cần hàn răng.',
+            symptoms: 'Đau buốt khi ăn đồ lạnh, có lỗ hổng màu đen.',
+            notes: 'Đã tư vấn phương pháp hàn Composite.'
         });
 
         console.log('✅ SEED THÀNH CÔNG!');

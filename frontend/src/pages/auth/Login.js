@@ -31,8 +31,8 @@ const Login = () => {
     };
 
     return (
-        <Container className="py-5">
-            <Card style={{ maxWidth: '400px' }} className="mx-auto shadow">
+        <Container className="page-fill auth-page d-flex align-items-center justify-content-center py-5">
+            <Card className="auth-card mx-auto shadow">
                 <Card.Body>
                     <h3 className="text-center mb-4">Đăng nhập</h3>
                     {error && <Alert variant="danger">{error}</Alert>}

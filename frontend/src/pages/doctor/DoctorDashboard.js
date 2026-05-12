@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Table, Card, Badge, Spinner, Alert, Button, Modal, Form } from 'react-bootstrap';
+import { Container, Row, Col, Table, Card, Badge, Spinner, Alert, Button } from 'react-bootstrap';
 import { appointmentService } from '../../services/appointmentService';
+import { supplyService } from '../../services/supplyService';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend } from 'chart.js';
-import { FaCalendarAlt, FaClock, FaUser, FaCheckCircle, FaHourglassHalf, FaChartLine, FaEdit, FaTimesCircle } from 'react-icons/fa';
-import DatePicker from 'react-datepicker';
-import "react-datepicker/dist/react-datepicker.css";
+import { FaCalendarAlt, FaClock, FaUser, FaCheckCircle, FaHourglassHalf, FaChartLine, FaEdit, FaTimesCircle, FaFileMedical, FaPrescriptionBottleAlt } from 'react-icons/fa';
+
+import RescheduleModal from './components/RescheduleModal';
+import MedicalRecordModal from './components/MedicalRecordModal';
+import PrescriptionModal from './components/PrescriptionModal';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend);
 
@@ -13,12 +16,13 @@ const DoctorDashboard = () => {
     const [appointments, setAppointments] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
+    const [supplies, setSupplies] = useState([]);
     
-    // Modal state for rescheduling
-    const [showModal, setShowModal] = useState(false);
+    // UI State
     const [selectedApt, setSelectedApt] = useState(null);
-    const [newDate, setNewDate] = useState(new Date());
-    const [newTime, setNewTime] = useState('');
+    const [showRescheduleModal, setShowRescheduleModal] = useState(false);
+    const [showRecordModal, setShowRecordModal] = useState(false);
+    const [showPrescriptionModal, setShowPrescriptionModal] = useState(false);
     const [updateLoading, setUpdateLoading] = useState(false);
 
     const fetchAppointments = async () => {
@@ -34,8 +38,18 @@ const DoctorDashboard = () => {
         }
     };
 
+    const fetchSupplies = async () => {
+        try {
+            const res = await supplyService.getAll();
+            setSupplies(res.data);
+        } catch (err) {
+            console.error("Failed to fetch supplies", err);
+        }
+    };
+
     useEffect(() => {
         fetchAppointments();
+        fetchSupplies();
     }, []);
 
     const handleUpdateStatus = async (id, status) => {
@@ -51,26 +65,11 @@ const DoctorDashboard = () => {
         }
     };
 
-    const handleReschedule = async () => {
-        if (!selectedApt) return;
-        try {
-            setUpdateLoading(true);
-            await appointmentService.update(selectedApt._id, { date: newDate, time: newTime });
-            setShowModal(false);
-            fetchAppointments(); // Refresh list
-        } catch (err) {
-            console.error(err);
-            alert('Lỗi thay đổi lịch hẹn');
-        } finally {
-            setUpdateLoading(false);
-        }
-    };
-
-    const openRescheduleModal = (apt) => {
+    const openModal = (type, apt) => {
         setSelectedApt(apt);
-        setNewDate(new Date(apt.date));
-        setNewTime(apt.time || '');
-        setShowModal(true);
+        if (type === 'reschedule') setShowRescheduleModal(true);
+        if (type === 'record') setShowRecordModal(true);
+        if (type === 'prescription') setShowPrescriptionModal(true);
     };
 
     const pendingApts = appointments.filter(apt => apt.status === 'pending').length;
@@ -99,7 +98,7 @@ const DoctorDashboard = () => {
     };
 
     return (
-        <div className="bg-light pb-5" style={{ minHeight: '100vh' }}>
+        <div className="page-fill bg-light pb-5">
             <div className="bg-primary text-white py-4 mb-4 shadow-sm">
                 <Container>
                     <h2 className="mb-0 fw-bold"><FaChartLine className="me-2"/> Bảng điều khiển Bác sĩ</h2>
@@ -177,7 +176,7 @@ const DoctorDashboard = () => {
                                                     <th className="border-0 rounded-start">Bệnh nhân</th>
                                                     <th className="border-0">Thời gian</th>
                                                     <th className="border-0">Trạng thái</th>
-                                                    <th className="border-0">Ghi chú</th>
+                                                    <th className="border-0 text-center">Hồ sơ & Đ.Trị</th>
                                                     <th className="border-0 rounded-end text-center">Hành động</th>
                                                 </tr>
                                             </thead>
@@ -199,8 +198,17 @@ const DoctorDashboard = () => {
                                                             <div className="small text-muted"><FaClock className="me-2"/> {apt.time || 'N/A'}</div>
                                                         </td>
                                                         <td>{getStatusBadge(apt.status)}</td>
-                                                        <td className="text-muted small">
-                                                            {apt.notes ? (apt.notes.length > 30 ? apt.notes.substring(0,30) + '...' : apt.notes) : '-'}
+                                                        <td>
+                                                            {(apt.status === 'confirmed' || apt.status === 'completed') ? (
+                                                                <div className="d-flex justify-content-center gap-2">
+                                                                    <Button variant="outline-info" size="sm" onClick={() => openModal('record', apt)} title="Ghi nhận / Cập nhật bệnh án">
+                                                                        <FaFileMedical />
+                                                                    </Button>
+                                                                    <Button variant="outline-warning" size="sm" onClick={() => openModal('prescription', apt)} title="Lập kế hoạch điều trị">
+                                                                        <FaPrescriptionBottleAlt />
+                                                                    </Button>
+                                                                </div>
+                                                            ) : <span className="text-muted small">-</span>}
                                                         </td>
                                                         <td>
                                                             <div className="d-flex justify-content-center gap-2">
@@ -220,7 +228,7 @@ const DoctorDashboard = () => {
                                                                     </Button>
                                                                 )}
                                                                 {(apt.status === 'pending' || apt.status === 'confirmed') && (
-                                                                    <Button variant="outline-primary" size="sm" onClick={() => openRescheduleModal(apt)} disabled={updateLoading} title="Thay đổi lịch hẹn">
+                                                                    <Button variant="outline-primary" size="sm" onClick={() => openModal('reschedule', apt)} disabled={updateLoading} title="Thay đổi lịch hẹn">
                                                                         <FaEdit />
                                                                     </Button>
                                                                 )}
@@ -251,49 +259,29 @@ const DoctorDashboard = () => {
                 </Row>
             </Container>
 
-            {/* Reschedule Modal */}
-            <Modal show={showModal} onHide={() => setShowModal(false)} centered>
-                <Modal.Header closeButton>
-                    <Modal.Title>Thay đổi lịch hẹn</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <Form>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Ngày khám mới</Form.Label>
-                            <DatePicker 
-                                selected={newDate} 
-                                onChange={(date) => setNewDate(date)} 
-                                className="form-control w-100" 
-                                dateFormat="dd/MM/yyyy" 
-                                minDate={new Date()}
-                            />
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Giờ khám mới</Form.Label>
-                            <Form.Select value={newTime} onChange={(e) => setNewTime(e.target.value)}>
-                                <option value="">Chọn giờ</option>
-                                <option value="9:00">9:00</option>
-                                <option value="10:00">10:00</option>
-                                <option value="11:00">11:00</option>
-                                <option value="14:00">14:00</option>
-                                <option value="15:00">15:00</option>
-                                <option value="16:00">16:00</option>
-                            </Form.Select>
-                        </Form.Group>
-                    </Form>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowModal(false)} disabled={updateLoading}>
-                        Hủy
-                    </Button>
-                    <Button variant="primary" onClick={handleReschedule} disabled={updateLoading || !newTime}>
-                        {updateLoading ? 'Đang cập nhật...' : 'Lưu thay đổi'}
-                    </Button>
-                </Modal.Footer>
-            </Modal>
+            {/* Modals */}
+            <RescheduleModal 
+                show={showRescheduleModal} 
+                onHide={() => setShowRescheduleModal(false)} 
+                appointment={selectedApt} 
+                onSuccess={fetchAppointments} 
+            />
+            
+            <MedicalRecordModal 
+                show={showRecordModal} 
+                onHide={() => setShowRecordModal(false)} 
+                appointment={selectedApt} 
+            />
+            
+            <PrescriptionModal 
+                show={showPrescriptionModal} 
+                onHide={() => setShowPrescriptionModal(false)} 
+                appointment={selectedApt} 
+                supplies={supplies} 
+            />
+
         </div>
     );
 };
 
 export default DoctorDashboard;
-

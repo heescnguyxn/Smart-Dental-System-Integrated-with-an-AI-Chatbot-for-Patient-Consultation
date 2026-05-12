@@ -56,6 +56,14 @@ const StaffDashboard = () => {
                         </Card.Body>
                     </Card>
                 </Col>
+                <Col md={3}>
+                    <Card className="bg-success text-white" style={{ cursor: 'pointer', marginTop: '15px' }} onClick={() => window.location.href='/manage-payments'}>
+                        <Card.Body className="text-center">
+                            <Card.Title>Thu ngân</Card.Title>
+                            <h2>$$</h2>
+                        </Card.Body>
+                    </Card>
+                </Col>
             </Row>
             
             <Row>
